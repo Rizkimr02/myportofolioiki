@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rizky Maulana | Front End Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.132.2/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a0a0a;
+            color: #e2e2e2;
+            overflow-x: hidden;
+        }
+        
+        .purple-glow {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+        
+        .tech-icon:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.8));
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, #8b5cf6, #d946ef);
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: -26px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+        }
+        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .glow-border {
+            position: relative;
+        }
+        
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            padding: 2px;
+            background: linear-gradient(45deg, #8b5cf6, #d946ef);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .glow-border:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Background Canvas -->
+    <div id="canvas-container"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-black bg-opacity-80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold gradient-text">Rizky Maulana</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#home" class="px-3 py-2 rounded-md text-sm font-medium text-purple-400 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 transition">Home</a>
+                        <a href="#experience" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 transition">Experience</a>
+                        <a href="#education" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 transition">Education</a>
+                        <a href="#skills" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 transition">Skills</a>
+                        <a href="#contact" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 transition">Contact</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button class="mobile-menu-button p-2 rounded-md text-purple-400 hover:text-white hover:bg-purple-900 focus:outline-none">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 purple-glow">
+                    Hi, I'm <span class="gradient-text">Rizky Maulana</span>
+                </h1>
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-purple-300">
+                    I'm a Junior Front End Web Developer
+                </h2>
+                <p class="text-lg text-gray-300 mb-8 max-w-lg">
+                    Passionate about creating beautiful, functional, and user-friendly web experiences with modern technologies.
+                </p>
+                <div class="flex space-x-4 justify-center md:justify-start">
+                    <a href="#contact" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-full font-medium text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 transform hover:-translate-y-1">
+                        Contact Me
+                    </a>
+                    <a href="#skills" class="px-6 py-3 border border-purple-500 rounded-full font-medium text-purple-300 hover:bg-purple-900 hover:bg-opacity-30 transition-all duration-300 transform hover:-translate-y-1">
+                        View Skills
+                    </a>
+                </div>
+            </div>
+            <div class="flex justify-center items-center">
+                <div class="relative">
+                    <div class="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden glow-border floating">
+                        <img src="aku.jpg" 
+                             alt="Rizky Maulana" 
+                             class="w-full h-full object-cover object-center">
+                    </div>
+                    <div class="absolute -bottom-5 -right-5 bg-purple-900 rounded-full p-3 shadow-lg shadow-purple-900/50">
+                        <i class="fas fa-code text-white text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Work Experience Section -->
+    <section id="experience" class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black to-purple-900/10">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center gradient-text">Work Experience</h2>
+            
+            <div class="relative max-w-3xl mx-auto">
+                <!-- PT PLN Experience -->
+                <div class="relative pl-8 mb-12 timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-purple-900 p-3 rounded-lg mr-4">
+                                <i class="fas fa-bolt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">PT PLN (Persero)</h3>
+                                <p class="text-purple-300">Tasikmalaya, Jawa Barat, Indonesia</p>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-purple-200">Data Analyst</h4>
+                            <p class="text-sm text-gray-400">Jun 2021 – Nov 2021</p>
+                        </div>
+                        <p class="text-gray-300">
+                            Sebagai Data Analyst yang bertugas mengolah dan menerjemahkan data dari Inpangan ke dalam laporan. Saya juga membantu memeriksa alat-alat yang akan digunakan saat pengoperasian kelistrikan.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Garudafood Experience -->
+                <div class="relative pl-8 timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-purple-900 p-3 rounded-lg mr-4">
+                                <i class="fas fa-cogs text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">PT Garudafood Putra Putri Jaya Tbk</h3>
+                                <p class="text-purple-300">Sumedang, Jawa Barat, Indonesia</p>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-purple-200">Maintenance</h4>
+                            <p class="text-sm text-gray-400">Current Position</p>
+                        </div>
+                        <p class="text-gray-300">
+                            Bekerja dengan bagian maintenance bertugas memperbaiki mesin-mesin yang rusak seperti contoh mesin packing vertikal dan mesin-mesin lainnya. Mesin-mesin tersebut dipergunakan untuk membuat prosesnya sebuah produk makanan.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-purple-900/10 to-black">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center gradient-text">Education</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- SD -->
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-2">
+                    <div class="bg-purple-900 p-3 rounded-lg mb-4 inline-block">
+                        <i class="fas fa-school text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">SDN Sirahcal</h3>
+                    <p class="text-purple-300 mb-4">Sumedang</p>
+                    <p class="text-sm text-gray-400 mb-2">Jun 2010 – Jun 2014</p>
+                    <p class="text-gray-300">Lulus dengan nilai yang memuaskan dan aktif dalam kegiatan sekolah.</p>
+                </div>
+                
+                <!-- SMP -->
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-2">
+                    <div class="bg-purple-900 p-3 rounded-lg mb-4 inline-block">
+                        <i class="fas fa-graduation-cap text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">SMPN 1 Karangnunggal</h3>
+                    <p class="text-purple-300 mb-4">Tasikmalaya</p>
+                    <p class="text-sm text-gray-400 mb-2">Mar 2015 – May 2019</p>
+                    <p class="text-gray-300">Menyelesaikan pendidikan menengah pertama dengan prestasi akademik yang baik.</p>
+                </div>
+                
+                <!-- SMK -->
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-2">
+                    <div class="bg-purple-900 p-3 rounded-lg mb-4 inline-block">
+                        <i class="fas fa-industry text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">SMK Bantarkalong</h3>
+                    <p class="text-purple-300 mb-4">Tasikmalaya</p>
+                    <p class="text-sm text-gray-400 mb-2">Apr 2010 – May 2022</p>
+                    <p class="text-gray-300">Jurusan Teknik Elektronika Industri, lulus dengan kemampuan teknis yang kuat di bidang elektronika dan pemrograman dasar.</p>
+                </div>
+                
+                <!-- Universitas Terbuka -->
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition transform hover:-translate-y-2">
+                    <div class="bg-purple-900 p-3 rounded-lg mb-4 inline-block">
+                        <i class="fas fa-university text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Universitas Terbuka</h3>
+                    <p class="text-purple-300 mb-4">Bandung, Jawa Barat, Indonesia</p>
+                    <p class="text-sm text-gray-400 mb-2">2023 - Sekarang</p>
+                    <p class="text-gray-300">Program Studi Sistem Informasi </p>
+                    <p class="text-gray-300">( Semester 4 ) </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-20 px-4 sm:px-6 lg:px-8 bg-black">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center gradient-text">Skills</h2>
+            
+            <div class="mb-16">
+                <h3 class="text-2xl font-semibold mb-6 text-purple-300">Maintenance Skills</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="skill-card bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg transition duration-300">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-purple-900 p-2 rounded-lg mr-3">
+                                <i class="fas fa-microchip text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white">Pemrograman Kelistrikan</h4>
+                        </div>
+                        <p class="text-gray-300">
+                            Paham dasar PLC dan Display control panel, mampu memprogram sistem kontrol industri dasar.
+                        </p>
+                    </div>
+                    
+                    <div class="skill-card bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg transition duration-300">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-purple-900 p-2 rounded-lg mr-3">
+                                <i class="fas fa-search text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white">Troubleshooting</h4>
+                        </div>
+                        <p class="text-gray-300">
+                            Menganalisa kerusakan dengan downtime waktu yang sesingkat mungkin, meminimalkan gangguan produksi.
+                        </p>
+                    </div>
+                    
+                    <div class="skill-card bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-6 shadow-lg transition duration-300">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-purple-900 p-2 rounded-lg mr-3">
+                                <i class="fas fa-broom text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white">Kerapihan</h4>
+                        </div>
+                        <p class="text-gray-300">
+                            Rapih dan bersih dalam menjaga lingkungan dalam bekerja, menerapkan 5S di area kerja.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-2xl font-semibold mb-6 text-purple-300">Programming Languages & Tools</h3>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6">
+                    <!-- HTML -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-html5 text-4xl text-orange-500 mb-2"></i>
+                        <span class="text-sm text-gray-300">HTML</span>
+                    </div>
+                    
+                    <!-- CSS -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-css3-alt text-4xl text-blue-500 mb-2"></i>
+                        <span class="text-sm text-gray-300">CSS</span>
+                    </div>
+                    
+                    <!-- JavaScript -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-js-square text-4xl text-yellow-400 mb-2"></i>
+                        <span class="text-sm text-gray-300">JavaScript</span>
+                    </div>
+                    
+                    <!-- React -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-react text-4xl text-blue-400 mb-2"></i>
+                        <span class="text-sm text-gray-300">React.js</span>
+                    </div>
+                    
+                    <!-- TypeScript -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fas fa-code text-4xl text-blue-600 mb-2"></i>
+                        <span class="text-sm text-gray-300">TypeScript</span>
+                    </div>
+                    
+                    <!-- Tailwind -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fas fa-wind text-4xl text-cyan-400 mb-2"></i>
+                        <span class="text-sm text-gray-300">Tailwind</span>
+                    </div>
+                    
+                    <!-- Next.js -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://cdn.worldvectorlogo.com/logos/next-js.svg" alt="Next.js" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Next.js</span>
+                    </div>
+                    
+                    <!-- Redux -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fas fa-cube text-4xl text-purple-500 mb-2"></i>
+                        <span class="text-sm text-gray-300">Redux</span>
+                    </div>
+                    
+                    <!-- Firebase -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fas fa-fire text-4xl text-yellow-500 mb-2"></i>
+                        <span class="text-sm text-gray-300">Firebase</span>
+                    </div>
+                    
+                    <!-- Vite -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://vitejs.dev/logo.svg" alt="Vite" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Vite</span>
+                    </div>
+                    
+                    <!-- Axios -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://axios-http.com/assets/logo.svg" alt="Axios" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Axios</span>
+                    </div>
+                    
+                    <!-- Framer Motion -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://www.framer.com/images/framer-logo.png" alt="Framer Motion" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Framer Motion</span>
+                    </div>
+                    
+                    <!-- Jest -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://jestjs.io/img/jest.png" alt="Jest" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Jest</span>
+                    </div>
+                    
+                    <!-- RTL -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://testing-library.com/img/logo-large.png" alt="RTL" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">RTL</span>
+                    </div>
+                    
+                    <!-- Git -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-git-alt text-4xl text-orange-600 mb-2"></i>
+                        <span class="text-sm text-gray-300">Git</span>
+                    </div>
+                    
+                    <!-- GitHub -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-github text-4xl text-gray-300 mb-2"></i>
+                        <span class="text-sm text-gray-300">GitHub</span>
+                    </div>
+                    
+                    <!-- Figma -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <i class="fab fa-figma text-4xl text-purple-300 mb-2"></i>
+                        <span class="text-sm text-gray-300">Figma</span>
+                    </div>
+                    
+                    <!-- Vercel -->
+                    <div class="tech-icon flex flex-col items-center p-4 rounded-lg bg-gray-900 bg-opacity-50 transition duration-300">
+                        <img src="https://assets.vercel.com/image/upload/q_auto/front/favicon/vercel/76x76.png" alt="Vercel" class="h-10 mb-2">
+                        <span class="text-sm text-gray-300">Vercel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black to-purple-900/10">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center gradient-text">Get In Touch</h2>
+            
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 text-purple-300">Contact Information</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="bg-purple-900 p-3 rounded-lg mr-4">
+                                <i class="fas fa-envelope text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-white">Email</h4>
+                                <a href="mailto:rizkymaulana03915@gmail.com" class="text-purple-300 hover:text-purple-200 transition">rizkymaulana03915@gmail.com</a>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-purple-900 p-3 rounded-lg mr-4">
+                                <i class="fas fa-phone-alt text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-white">Phone</h4>
+                                <a href="tel:085608018910" class="text-purple-300 hover:text-purple-200 transition">0856-0801-8910</a>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-purple-900 p-3 rounded-lg mr-4">
+                                <i class="fas fa-map-marker-alt text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-white">Address</h4>
+                                <p class="text-gray-300">
+                                    Dusun Lunjuk, RT 001/RW 010, Desa Cisempur, Kecamatan Jatinangor, Kabupaten Sumedang, Jawa Barat, Indonesia
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h4 class="text-lg font-medium text-white mb-4">Connect with me</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="bg-purple-900 p-3 rounded-full hover:bg-purple-800 transition">
+                                <i class="fab fa-linkedin-in text-white"></i>
+                            </a>
+                            <a href="#" class="bg-purple-900 p-3 rounded-full hover:bg-purple-800 transition">
+                                <i class="fab fa-github text-white"></i>
+                            </a>
+                            <a href="#" class="bg-purple-900 p-3 rounded-full hover:bg-purple-800 transition">
+                                <i class="fab fa-instagram text-white"></i>
+                            </a>
+                            <a href="#" class="bg-purple-900 p-3 rounded-full hover:bg-purple-800 transition">
+                                <i class="fab fa-twitter text-white"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-900 bg-opacity-70 backdrop-blur-sm rounded-xl p-8 shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 text-purple-300">Send Me a Message</h3>
+                    
+                    <form class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Your Name</label>
+                            <input type="text" id="name" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Your Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-gray-300 mb-1">Subject</label>
+                            <input type="text" id="subject" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                            <textarea id="message" rows="5" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-white placeholder-gray-500 transition"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-lg font-medium text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 sm:px-6 lg:px-8 bg-black border-t border-gray-800">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-xl font-bold gradient-text">Rizky Maulana</span>
+                    <p class="text-gray-500 text-sm mt-1">Junior Front End Web Developer</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-purple-300 transition">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-purple-300 transition">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-purple-300 transition">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-purple-300 transition">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+                <p>&copy; 2023 Rizky Maulana. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // 3D Background Animation
+        const init3DBackground = () => {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Particles
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            
+            const posArray = new Float32Array(particleCount * 3);
+            for(let i = 0; i < particleCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 10;
+            }
+            
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0x8b5cf6,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+            
+            camera.position.z = 3;
+            
+            // Animation loop
+            const animate = () => {
+                requestAnimationFrame(animate);
+                
+                particlesMesh.rotation.x += 0.0005;
+                particlesMesh.rotation.y += 0.001;
+                
+                renderer.render(scene, camera);
+            };
+            
+            animate();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+        
+        // Initialize when page loads
+        window.addEventListener('load', init3DBackground);
+        
+        // GSAP Animations
+        gsap.from("nav", {
+            y: -50,
+            opacity: 0,
+            duration: 1,
+            ease: "power3.out"
+        });
+        
+        gsap.from("#home h1, #home h2, #home p", {
+            y: 50,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            delay: 0.5,
+            ease: "power3.out"
+        });
+        
+        gsap.from("#home img", {
+            scale: 0.8,
+            opacity: 0,
+            duration: 1,
+            delay: 0.8,
+            ease: "back.out(1.7)"
+        });
+        
+        // Scroll animations
+        const sections = document.querySelectorAll("section");
+        
+        sections.forEach(section => {
+            gsap.from(section, {
+                scrollTrigger: {
+                    trigger: section,
+                    start: "top 80%",
+                    toggleActions: "play none none none"
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        });
+    </script>
+</body>
+</html>
